@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@instantdb/admin": "^0.22.91",
+    "@instantdb/core": "^0.22.91",
     "@instantdb/react": "^0.22.91",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",

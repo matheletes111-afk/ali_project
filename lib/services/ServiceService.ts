@@ -1,5 +1,5 @@
-import { db } from "@/lib/instant/db";
-import { id } from "@instantdb/react";
+import { db } from "@/lib/instant/db-server";
+import { id } from "@instantdb/admin";
 import { safeJsonParse, safeJsonStringify } from "@/lib/utils/helpers";
 import { NotFoundError } from "@/lib/utils/errors";
 import { ITEM_STATUS } from "@/lib/utils/constants";

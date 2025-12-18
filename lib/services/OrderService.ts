@@ -1,5 +1,5 @@
-import { db } from "@/lib/instant/db";
-import { id } from "@instantdb/react";
+import { db } from "@/lib/instant/db-server";
+import { id } from "@instantdb/admin";
 import { safeJsonParse, safeJsonStringify, generateOrderNumber, generateBookingNumber } from "@/lib/utils/helpers";
 import { NotFoundError, ValidationError } from "@/lib/utils/errors";
 import { ORDER_STATUS, PAYMENT_STATUS, ORDER_TYPES } from "@/lib/utils/constants";

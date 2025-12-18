@@ -1,12 +1,9 @@
-// Import i from @instantdb/react to match the pulled schema
+// Docs: https://www.instantdb.com/docs/modeling-data
+
 import { i } from "@instantdb/react";
 
-// Instant DB Schema Definition
-// This should match instant.schema.ts - we use userProfiles instead of users 
-// since $users is Instant DB's built-in entity
-export const schema = i.schema({
+const _schema = i.schema({
   entities: {
-    // Include Instant DB's built-in entities
     $files: i.entity({
       path: i.string().unique().indexed(),
       url: i.string(),
@@ -29,7 +26,7 @@ export const schema = i.schema({
       deletedAt: i.number().optional(),
     }),
     sellers: i.entity({
-      userId: i.string(),
+      userId: i.string().indexed(),
       ownerName: i.string(),
       businessType: i.string(), // 'shop' | 'service'
       verificationStatus: i.string(), // 'pending' | 'verified' | 'rejected'
@@ -41,7 +38,7 @@ export const schema = i.schema({
       updatedAt: i.number(),
     }),
     stores: i.entity({
-      sellerId: i.string(),
+      sellerId: i.string().indexed(),
       name: i.string(),
       description: i.string().optional(),
       category: i.string(),
@@ -62,7 +59,7 @@ export const schema = i.schema({
       approvedBy: i.string().optional(),
     }),
     documents: i.entity({
-      sellerId: i.string(),
+      sellerId: i.string().indexed(),
       type: i.string(), // 'registration_certificate' | 'license' | 'other'
       fileUrl: i.string(),
       fileName: i.string(),
@@ -89,7 +86,7 @@ export const schema = i.schema({
       updatedAt: i.number(),
     }),
     products: i.entity({
-      storeId: i.string(),
+      storeId: i.string().indexed(),
       title: i.string(),
       description: i.string().optional(),
       category: i.string(),
@@ -113,7 +110,7 @@ export const schema = i.schema({
       updatedAt: i.number(),
     }),
     services: i.entity({
-      storeId: i.string(),
+      storeId: i.string().indexed(),
       title: i.string(),
       description: i.string().optional(),
       category: i.string(),
@@ -130,8 +127,8 @@ export const schema = i.schema({
     }),
     orders: i.entity({
       orderNumber: i.string().unique().indexed(),
-      customerId: i.string(),
-      storeId: i.string(),
+      customerId: i.string().indexed(),
+      storeId: i.string().indexed(),
       type: i.string(), // 'product' | 'service'
       status: i.string(), // 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
       items: i.string(), // JSON array string
@@ -148,9 +145,9 @@ export const schema = i.schema({
     }),
     bookings: i.entity({
       bookingNumber: i.string().unique().indexed(),
-      customerId: i.string(),
-      serviceId: i.string(),
-      storeId: i.string(),
+      customerId: i.string().indexed(),
+      serviceId: i.string().indexed(),
+      storeId: i.string().indexed(),
       scheduledAt: i.number(),
       duration: i.number(),
       status: i.string(), // 'pending' | 'confirmed' | 'completed' | 'cancelled'
@@ -161,8 +158,8 @@ export const schema = i.schema({
       updatedAt: i.number(),
     }),
     reviews: i.entity({
-      customerId: i.string(),
-      storeId: i.string(),
+      customerId: i.string().indexed(),
+      storeId: i.string().indexed(),
       orderId: i.string().optional(),
       bookingId: i.string().optional(),
       rating: i.number(),
@@ -174,7 +171,7 @@ export const schema = i.schema({
       updatedAt: i.number(),
     }),
     adminLogs: i.entity({
-      adminId: i.string(),
+      adminId: i.string().indexed(),
       action: i.string(),
       targetType: i.string(),
       targetId: i.string(),
@@ -201,5 +198,10 @@ export const schema = i.schema({
   rooms: {},
 });
 
-export type Schema = typeof schema;
+// This helps Typescript display nicer intellisense
+type _AppSchema = typeof _schema;
+interface AppSchema extends _AppSchema {}
+const schema: AppSchema = _schema;
 
+export type { AppSchema };
+export default schema;

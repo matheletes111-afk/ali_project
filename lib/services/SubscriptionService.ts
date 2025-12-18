@@ -1,5 +1,5 @@
-import { db } from "@/lib/instant/db";
-import { id } from "@instantdb/react";
+import { db } from "@/lib/instant/db-server";
+import { id } from "@instantdb/admin";
 import { safeJsonParse, safeJsonStringify, isSubscriptionActive } from "@/lib/utils/helpers";
 import { NotFoundError, SubscriptionError } from "@/lib/utils/errors";
 import { SUBSCRIPTION_STATUS, SUBSCRIPTION_PLAN_SLUGS } from "@/lib/utils/constants";

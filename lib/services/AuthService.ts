@@ -1,5 +1,6 @@
-import { db } from "@/lib/instant/db";
-import { id } from "@instantdb/react";
+// Use server-side database for API routes
+import { db } from "@/lib/instant/db-server";
+import { id } from "@instantdb/admin";
 import { generateToken } from "@/lib/auth/tokens";
 import { NotFoundError, ConflictError } from "@/lib/utils/errors";
 import { USER_ROLES } from "@/lib/utils/constants";
@@ -13,62 +14,82 @@ export class AuthService {
     role: "seller" | "customer";
     phone?: string;
   }): Promise<{ userId: string }> {
-    // Check if user already exists
-    const existing = await db.query({
-      users: {
-        $: { where: { email: data.email } },
-      },
-    });
+    try {
+      // For now, we'll create a userProfile with a generated userId
+      // In production, you'd link this to Instant DB's $users entity after auth
+      const userId = id();
+      const now = Date.now();
 
-    if (existing.data?.users && existing.data.users.length > 0) {
-      throw new ConflictError("User with this email already exists");
-    }
+      // Check if userProfile already exists for this email
+      const existing = await db.query({
+        userProfiles: {
+          $: { where: { email: data.email } },
+        },
+      });
 
-    const userId = id();
-    const now = Date.now();
+      if (existing.data?.userProfiles && existing.userProfiles.length > 0) {
+        throw new ConflictError("User with this email already exists");
+      }
 
-    db.transact(
-      db.tx.users[userId].update({
+      // Create userProfile transaction
+      // Note: Don't include optional fields if they're null/undefined
+      const userData: any = {
+        userId: userId, // In production, this should be $users.id from Instant DB auth
         email: data.email,
         role: data.role,
         name: data.name,
-        phone: data.phone || null,
-        avatar: null,
         createdAt: now,
         updatedAt: now,
-        deletedAt: null,
-      })
-    );
+      };
 
-    return { userId };
+      // Only include optional fields if they have values
+      if (data.phone) {
+        userData.phone = data.phone;
+      }
+      // avatar and deletedAt are optional, omit them if null
+
+      const transaction = db.tx.userProfiles[userId].update(userData);
+
+      // Execute transaction - Admin SDK's transact returns a promise
+      await db.transact(transaction);
+
+      return { userId };
+    } catch (error: any) {
+      console.error("Registration error in AuthService:", error);
+      // Re-throw with more context
+      if (error instanceof ConflictError) {
+        throw error;
+      }
+      throw new Error(`Failed to register user: ${error?.message || "Unknown error"}`);
+    }
   }
 
   // Get user by ID
   async getUserById(userId: string): Promise<User | null> {
     const result = await db.query({
-      users: {
-        $: { where: { id: userId } },
+      userProfiles: {
+        $: { where: { userId } },
       },
     });
 
-    const user = result.data?.users?.[0];
-    if (!user) return null;
+    const profile = result.data?.userProfiles?.[0];
+    if (!profile) return null;
 
-    return this.mapUser(user);
+    return this.mapUser(profile);
   }
 
   // Get user by email
   async getUserByEmail(email: string): Promise<User | null> {
     const result = await db.query({
-      users: {
+      userProfiles: {
         $: { where: { email } },
       },
     });
 
-    const user = result.data?.users?.[0];
-    if (!user) return null;
+    const profile = result.data?.userProfiles?.[0];
+    if (!profile) return null;
 
-    return this.mapUser(user);
+    return this.mapUser(profile);
   }
 
   // Create seller profile
@@ -91,7 +112,7 @@ export class AuthService {
     const sellerId = id();
     const now = Date.now();
 
-    db.transact(
+    await db.transact(
       db.tx.sellers[sellerId].update({
         userId: data.userId,
         ownerName: data.ownerName,
@@ -129,17 +150,17 @@ export class AuthService {
     });
   }
 
-  private mapUser(user: any): User {
+  private mapUser(profile: any): User {
     return {
-      id: user.id,
-      email: user.email,
-      role: user.role as any,
-      name: user.name,
-      phone: user.phone || undefined,
-      avatar: user.avatar || undefined,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      deletedAt: user.deletedAt || undefined,
+      id: profile.id,
+      email: profile.email,
+      role: profile.role as any,
+      name: profile.name,
+      phone: profile.phone || undefined,
+      avatar: profile.avatar || undefined,
+      createdAt: profile.createdAt,
+      updatedAt: profile.updatedAt,
+      deletedAt: profile.deletedAt || undefined,
     };
   }
 

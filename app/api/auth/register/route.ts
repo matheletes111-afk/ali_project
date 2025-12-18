@@ -47,9 +47,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Log the full error for debugging
     console.error("Registration error:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+
+    // Return more detailed error message in development
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : "Registration failed. Please check server logs for details.";
+
     return NextResponse.json(
-      { success: false, message: "Registration failed" },
+      { success: false, message: errorMessage },
       { status: 500 }
     );
   }

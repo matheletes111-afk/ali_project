@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAdmin } from "@/lib/auth/middleware";
 import { subscriptionService } from "@/lib/services/SubscriptionService";
-import { db } from "@/lib/instant/db";
+import { db } from "@/lib/instant/db-server";
 import { safeJsonStringify } from "@/lib/utils/helpers";
 import { z } from "zod";
 
